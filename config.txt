@@ -1,0 +1,12 @@
+ANet Support BBS
+MobbyG
+Albany
+New York
+United States of America
+yourbbsdomain.com
+/Users/mobbyg/Dropbox/python/bbscoding/ANet/
+systext/
+sysdata/
+news/
+headers/
+pfiles/

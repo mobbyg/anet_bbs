@@ -1,0 +1,7 @@
+*******************************************************************************
+
+This is the sys.end file which is displayed at logoff..
+When we get MCI commands working, it'll be able to run "Pfiles"
+or Doors for logoff... 
+
+*******************************************************************************
