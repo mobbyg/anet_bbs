@@ -54,4 +54,6 @@ Dec 1st, 2013 : pre Alpha v.01A
 - Main Menu is still hard coded in. Some basic commands will be put in till a BBSMENU file system is fleshed out. Have some ideas, but nothing coded yet.
 - User data files are still just txt files. Makes it easier to edit and test user related features. When things get further along, we'll go to sqlite db.
 - New user signup is still not going to happen till I have more of the BBS fleshed out and able to accept incoming calls. In the meantime, copy/paste and edit existing user files to create new users. 
-	
+
+August 3rd, 2023
+- Added start of text editor for BBS. 
