@@ -50,54 +50,110 @@ class ConsoleTextEditor:
         self.stdscr.addstr("\nNew file created. Type your text.\n")
         self.edit_file()
 
-
     def edit_file(self):
         while True:
+            # Wait for the user to press a key and get the key's integer value
             key = self.stdscr.getch()
 
+            # Check if Enter key is pressed
             if key == curses.KEY_ENTER or key == 10:
-                self.content.insert(self.current_row + 1, self.content[self.current_row][self.current_col:])
-                self.content[self.current_row] = self.content[self.current_row][:self.current_col] + "\n"
-                self.current_row += 1
-                self.current_col = 0
+                # Handle new lines and line splitting
+                if self.current_col == len(self.content[self.current_row]) - 1:
+                    # Insert a new line at the cursor position
+                    self.content.insert(self.current_row + 1, "\n")
+                    self.current_row += 1
+                    self.current_col = 0
+                else:
+                    # Split the current line at the cursor position
+                    line = self.content[self.current_row]
+                    new_line = line[self.current_col:]
+                    self.content[self.current_row] = line[:self.current_col] + "\n"
+                    self.content.insert(self.current_row + 1, new_line)
+                    self.current_row += 1
+                    self.current_col = 0
+        
+            # Check if Backspace key is pressed
             elif key == curses.KEY_BACKSPACE or key == 127:
                 if self.current_col > 0:
+                    # Delete the character before the cursor
                     self.content[self.current_row] = self.content[self.current_row][:self.current_col - 1] + self.content[self.current_row][self.current_col:]
                     self.current_col -= 1
+        
+            # Check if Left arrow key is pressed
             elif key == curses.KEY_LEFT:
                 if self.current_col > 0:
+                    # Move the cursor one position to the left
                     self.current_col -= 1
+        
+            # Check if Right arrow key is pressed
             elif key == curses.KEY_RIGHT:
                 if self.current_col < len(self.content[self.current_row]) - 1:
+                    # Move the cursor one position to the right
                     self.current_col += 1
+        
+            # Check if Up arrow key is pressed
             elif key == curses.KEY_UP:
                 if self.current_row > 0:
+                    # Move the cursor one row up and adjust column position
                     self.current_row -= 1
-                    if self.current_col > len(self.content[self.current_row]) - 1:
-                        self.current_col = len(self.content[self.current_row]) - 1
+                    self.current_col = min(self.current_col, len(self.content[self.current_row]))
+        
+            # Check if Down arrow key is pressed
             elif key == curses.KEY_DOWN:
                 if self.current_row < len(self.content) - 1:
+                    # Move the cursor one row down and adjust column position
                     self.current_row += 1
-                    if self.current_col > len(self.content[self.current_row]) - 1:
-                        self.current_col = len(self.content[self.current_row]) - 1
+                    self.current_col = min(self.current_col, len(self.content[self.current_row]))
+        
+            # Check if Ctrl+D is pressed (to exit editing)
             elif key == 4:  # Ctrl+D
                 break
+        
+        # If none of the special keys, treat the key as a character and insert it
             else:
-                self.content[self.current_row] = self.content[self.current_row][:self.current_col] + chr(key) + self.content[self.current_row][self.current_col:]
-                self.current_col += 1
-
+                if self.current_col == len(self.content[self.current_row]):
+                    # Append the character at the end of the line
+                    self.content[self.current_row] += chr(key)
+                    self.current_col += 1
+                else:
+                    # Insert the character at the cursor position within the line
+                    self.content[self.current_row] = self.content[self.current_row][:self.current_col] + chr(key) + self.content[self.current_row][self.current_col:]
+                    self.current_col += 1
+        
+            # Refresh the editor display to show changes
             self.refresh_editor()
 
     def refresh_editor(self):
         self.stdscr.clear()
         self.stdscr.addstr("\nEditing file:\n")
+
+        max_width = 80  # Maximum width of the editing area
+
         for i, line in enumerate(self.content):
+            while len(line) > max_width:
+                # Find the last space before the last word within the max_width
+                last_space_index = line[:max_width].rfind(" ")
+                if last_space_index == -1:
+                    last_space_index = max_width - 1
+                self.content.insert(i + 1, line[:last_space_index].rstrip())
+                line = line[last_space_index + 1:]
+
             if i == self.current_row:
-                self.stdscr.addstr(line[:self.current_col])
-                self.stdscr.addstr(line[self.current_col:self.current_col + 1])
+                visible_line = line[self.current_col:self.current_col + max_width]
+                self.stdscr.addstr(visible_line)
             else:
-                self.stdscr.addstr(line)
+                self.stdscr.addstr(line[:max_width])
+            self.stdscr.addstr("\n")  # Add a newline after each line
+
         self.stdscr.refresh()
+
+    def main(stdscr):
+        editor = TextEditor(stdscr)
+        editor.refresh_editor()
+        editor.edit_file()
+
+    curses.wrapper(main)
+
 
     def open_file(self):
         file_path = self.stdscr.getstr("\nEnter the file path to open: ").decode('utf-8')
@@ -109,7 +165,13 @@ class ConsoleTextEditor:
             print("File not found.")
 
     def save_file(self):
-        file_path = self.stdscr.getstr("\nEnter the file path to save: ").decode('utf-8')
+        self.stdscr.addstr("\nEnter the file path to save: ")
+        self.stdscr.refresh()
+        curses.echo()  # Enable echoing of input
+        file_path = self.stdscr.getstr().decode('utf-8')
+        curses.noecho()  # Disable echoing of input
+        self.stdscr.clear()
+
         with open(file_path, "w") as file:
             file.writelines(self.content)
             print(f"File '{file_path}' saved.")
